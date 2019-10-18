@@ -1,0 +1,104 @@
+<h2>Rectangle Creator</h2>
+<p>Count: <input id="count" value="5" /></p>
+<button id="create">Create</button>
+<button id="cancel">Cancel</button>
+<div id="teachable_machine"></div>
+<script>
+  document.getElementById("create").onclick = () => {
+    const textbox = document.getElementById("count");
+    const count = parseInt(textbox.value, 10);
+    parent.postMessage(
+      { pluginMessage: { type: "create-rectangles", count } },
+      "*"
+    );
+  };
+
+  document.getElementById("cancel").onclick = () => {
+    parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
+  };
+</script>
+
+<!-- Teachable Machine Below -->
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.1.2/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.6/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript">
+  console.log(navigator.getUserMedia);
+
+  // // Normalize the various vendor prefixed versions of getUserMedia.
+  // navigator.getUserMedia =
+  //   navigator.getUserMedia ||
+  //   navigator.webkitGetUserMedia ||
+  //   navigator.mozGetUserMedia ||
+  //   navigator.msGetUserMedia;
+
+  // Check that the browser supports getUserMedia.
+  // If it doesn't show an alert, otherwise continue.
+  if (navigator.getUserMedia) {
+    // Request the camera.
+    navigator.getUserMedia(
+      // Constraints
+      {
+        video: true
+      },
+
+      // Success Callback
+      function(localMediaStream) {
+        console.log("uh, maybe it works?");
+      },
+
+      // Error Callback
+      function(err) {
+        // Log the error to the console.
+        console.log(
+          "The following error occurred when trying to use getUserMedia: " + err
+        );
+      }
+    );
+  } else {
+    alert("Sorry, your browser does not support getUserMedia");
+  }
+
+  // The json file defining the weights of the model
+  const checkpointURL =
+    "https://storage.googleapis.com/tm-models/s05mCjEZ/model.json";
+
+  // The metatadata json file contains the text labels of your model
+  // and additional information
+  const metadataURL =
+    "https://storage.googleapis.com/tm-models/s05mCjEZ/metadata.json";
+
+  let model, webcamEl, maxPredictions;
+
+  async function init() {
+    // load the model and metadata
+    // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+    // or files from your local hard drive
+    model = await tmImage.load(checkpointURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    // optional function for creating a webcam
+    // webcam has a square ratio and is flipped by default to match training
+    const webcamFlipped = true;
+    webcamEl = await tmImage.getWebcam(200, 200, "front", webcamFlipped);
+    webcamEl.play();
+    document.getElementById("teachable_machine").appendChild(webcamEl);
+
+    window.requestAnimationFrame(loop); // kick of pose prediction loop
+  }
+
+  async function loop(timestamp) {
+    await predict();
+    window.requestAnimationFrame(loop);
+  }
+
+  async function predict() {
+    // predict can take in an image, video or canvas html element
+    // we set flip to true since the webcam was only flipped in CSS
+    const flip = true;
+    const prediction = await model.predict(webcamEl, flip, maxPredictions);
+    console.log(prediction);
+  }
+
+  init();
+</script>

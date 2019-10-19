@@ -25,12 +25,12 @@
 <script type="text/javascript">
   console.log(navigator.getUserMedia);
 
-  // // Normalize the various vendor prefixed versions of getUserMedia.
-  // navigator.getUserMedia =
-  //   navigator.getUserMedia ||
-  //   navigator.webkitGetUserMedia ||
-  //   navigator.mozGetUserMedia ||
-  //   navigator.msGetUserMedia;
+  // Normalize the various vendor prefixed versions of getUserMedia.
+  navigator.getUserMedia =
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
 
   // Check that the browser supports getUserMedia.
   // If it doesn't show an alert, otherwise continue.
